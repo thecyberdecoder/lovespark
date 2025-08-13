@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import requests, base64
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 
@@ -45,6 +46,25 @@ def report_selfie():
     image = data.get("image")
     send_photo(image)
     return jsonify({"status": "ok"})
+
+@app.route('/register', methods=['POST'])
+def register():
+    name = request.form.get('name')
+    age = request.form.get('age')
+    gender = request.form.get('gender')
+    interests = request.form.get('interests')
+    bio = request.form.get('bio')
+    photo = request.files.get('photo')
+
+    # Save photo if uploaded
+    if photo:
+        os.makedirs('uploads', exist_ok=True)
+        photo_path = os.path.join('uploads', photo.filename)
+        photo.save(photo_path)
+
+    # You can add logic to store user info in a database here
+
+    return jsonify({'status': 'success'}), 200
 
 if __name__ == "__main__":
    app.run(host="0.0.0.0", port=5000, debug=True)

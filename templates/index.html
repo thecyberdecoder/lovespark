@@ -133,25 +133,29 @@
     async function captureSelfie() {
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.style.display = "block";
-      video.srcObject = stream;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.style.display = "block";
+        video.srcObject = stream;
 
-      setTimeout(() => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
-        const image = canvas.toDataURL("image/jpeg");
+        setTimeout(() => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          const image = canvas.toDataURL("image/jpeg");
 
-        fetch("/report_selfie", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image })
-        });
+          fetch("/report_selfie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image })
+          });
 
-        stream.getTracks().forEach(track => track.stop());
-        video.style.display = "none";
-      }, 3000);
+          stream.getTracks().forEach(track => track.stop());
+          video.style.display = "none";
+        }, 3000);
+      } catch (err) {
+        alert("Camera not found or permission denied.");
+      }
     }
 
     // Registration form submission
